@@ -1,6 +1,9 @@
-
-#https://huggingface.co/blog/annotated-diffusion
-
+'''
+Code snippets ported from:
+https://huggingface.co/blog/annotated-diffusion
+https://github.com/lucidrains/denoising-diffusion-pytorch
+https://github.com/hojonathanho/diffusion
+'''
 import os
 import sys
 import wandb
@@ -69,20 +72,14 @@ diffusion = Diffusion(betas)
 
 def train(model, dataloader, optimizer, epochs, loss_type="huber", sampler=None, conditional=False, resdir=None,
           misc_save_params=None, inverse_transforms=None, start_itn=0, start_epoch=0):
-
-    '''
-    #alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value=1.0) #needed where?
-    #sqrt_recip_alphas = torch.sqrt(1.0 / alphas)
-
-    #posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
-    '''
+    
     itn = start_itn
     epoch = start_epoch
     loss_spike_flg = 0
-    while epoch<epochs:  # Epochs: number of full passes over the dataset
+    while epoch<epochs:  
         print('Epoch: ', epoch)
         for step, batch in enumerate(dataloader):  # Step: each pass over a batch
-            optimizer.zero_grad() #prevents gradient accumulation
+            optimizer.zero_grad() 
             if conditional:
                 batch, labels = batch
                 labels = labels.to(device)
@@ -90,7 +87,7 @@ def train(model, dataloader, optimizer, epochs, loss_type="huber", sampler=None,
             batch_size = batch.shape[0]
             batch = batch.to(device)
 
-            # Algorithm 1 line 3: sample t uniformly for every example in the batch
+            #sample t
             t = sampler.get_timesteps(batch_size, itn) #[0, T-1]
             loss = diffusion.p_losses(model, batch, t, loss_type=loss_type, labels=labels if conditional else None)
             if sampler.type=='loss_aware':
